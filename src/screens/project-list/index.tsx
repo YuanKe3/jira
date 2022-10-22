@@ -1,15 +1,18 @@
 import styled from '@emotion/styled'
+import { Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import { cleanObject, useDebounce, useMount } from 'utils'
 import { useHttp } from 'utils/http'
 import { List } from './list'
 import { SearchPanel } from './search-panel'
 
-const apiUrl = process.env.REACT_APP_API_URL
-
 export const ProjectListScreen = () => {
   // 所有负责人
   const [users, setUsers] = useState([])
+  // loading 的状态
+  const [isLoading, setIsLoading] = useState(false)
+  // 错误状态
+  const [error, setError] = useState<null | Error>(null)
   // 项目名称以及其负责人 id
   const [param, setParam] = useState({
     name: '',
@@ -22,7 +25,15 @@ export const ProjectListScreen = () => {
   const client = useHttp()
 
   useEffect(() => {
-    client('projects', { data: cleanObject(debouncedParam) }).then(setList)
+    setIsLoading(true)
+    client('projects', { data: cleanObject(debouncedParam) })
+      .then(setList)
+      .catch(error => {
+        setList([])
+        setError(error)
+      })
+      .finally(() => setIsLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedParam])
 
   useMount(() => {
@@ -33,7 +44,8 @@ export const ProjectListScreen = () => {
     <Container>
       <h1>项目列表</h1>
       <SearchPanel users={users} param={param} setParam={setParam} />
-      <List users={users} list={list} />
+      {error ? <Typography.Text type={'danger'}>{error.message}</Typography.Text> : null}
+      <List users={users} loading={isLoading} dataSource={list} />
     </Container>
   )
 }

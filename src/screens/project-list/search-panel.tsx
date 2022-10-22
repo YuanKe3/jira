@@ -24,7 +24,7 @@ interface SearchPanelProps {
  */
 export const SearchPanel = ({ users, param, setParam }: SearchPanelProps) => {
   return (
-    <Form css={{ marginBottom: '2rem', '>*': '' }} layout={'inline'}>
+    <Form key={'header'} css={{ marginBottom: '2rem', '>*': '' }} layout={'inline'}>
       <Form.Item>
         <Input
           placeholder={'项目名'}
