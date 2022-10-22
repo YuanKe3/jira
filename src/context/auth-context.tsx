@@ -2,10 +2,23 @@ import React, { ReactNode } from 'react'
 import { useState } from 'react'
 import * as auth from 'auth-provider'
 import { User } from 'screens/project-list/search-panel'
+import { http } from 'utils/http'
+import { useMount } from 'utils'
 
 interface AuthForm {
   username: string
   password: string
+}
+
+// 在首页刷新后，由于 user 初始化就是 null，所以 App.tsx 就会跳转到 unAuthenticatedApp 页面
+const bootstrapUser = async () => {
+  let user = null
+  const token = auth.getToken()
+  if (token) {
+    const data = await http('me', { token })
+    user = data.user
+  }
+  return user
 }
 
 // 创建上下文
@@ -26,6 +39,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (form: AuthForm) => auth.login(form).then(setUser)
   const register = (form: AuthForm) => auth.register(form).then(setUser)
   const logout = () => auth.logout().then(() => setUser(null))
+
+  useMount(() => {
+    bootstrapUser().then(setUser)
+  })
+
   return <AuthContext.Provider children={children} value={{ user, login, register, logout }} />
 }
 
