@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react'
-import { useState } from 'react'
 import * as auth from 'auth-provider'
+import { FullPageErrorFallback, FullPageLoading } from 'components/lib'
+import React, { ReactNode } from 'react'
 import { User } from 'screens/project-list/search-panel'
-import { http } from 'utils/http'
 import { useMount } from 'utils'
+import { http } from 'utils/http'
+import { useAsync } from 'utils/use-async'
 
 interface AuthForm {
   username: string
@@ -35,15 +36,32 @@ AuthContext.displayName = 'AuthContext'
 
 // 封装 AuthContext.Provider 组件
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const {
+    data: user,
+    error,
+    isLoading,
+    isIdle,
+    isError,
+    run,
+    setData: setUser
+  } = useAsync<User | null>()
+
   const login = (form: AuthForm) => auth.login(form).then(setUser)
   const register = (form: AuthForm) => auth.register(form).then(setUser)
   const logout = () => auth.logout().then(() => setUser(null))
 
   useMount(() => {
-    bootstrapUser().then(setUser)
+    run(bootstrapUser())
   })
 
+  // 当页面处于 pending 或 loading 状态时
+  if (isIdle || isLoading) {
+    return <FullPageLoading />
+  }
+  // 当 bootstrapUser 出错时
+  if (isError) {
+    return <FullPageErrorFallback error={error} />
+  }
   return <AuthContext.Provider children={children} value={{ user, login, register, logout }} />
 }
 
