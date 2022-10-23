@@ -2,18 +2,17 @@ import styled from '@emotion/styled'
 import { Typography } from 'antd'
 import { useDebounce, useDocumentTitle } from 'utils'
 import { useProjects } from 'utils/project'
-import { useUrlQueryParam } from 'utils/url'
 import { useUsers } from 'utils/user'
 import { List } from './list'
 import { SearchPanel } from './search-panel'
+import { useProjectsSearchParams } from './util'
 
 export const ProjectListScreen = () => {
-  // 项目名称以及其负责人 id
-  const [param, setParam] = useUrlQueryParam(['name', 'personId'])
-  const debouncedParam = useDebounce(param, 200)
-  const { isLoading, error, data: list } = useProjects(debouncedParam)
-  const { data: users } = useUsers()
   useDocumentTitle('项目列表', false)
+  // 项目名称以及其负责人 id
+  const [param, setParam] = useProjectsSearchParams()
+  const { isLoading, error, data: list } = useProjects(useDebounce(param, 200))
+  const { data: users } = useUsers()
 
   return (
     <Container>
