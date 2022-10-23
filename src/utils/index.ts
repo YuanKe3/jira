@@ -45,3 +45,21 @@ export const useArray = <T>(initialArray: T[]) => {
     removeIndex: (index = 0) => setValue(value.slice(index + 1))
   }
 }
+
+export const useDocumentTitle = (title: string, keepOnUnmount = true) => {
+  const oldTitle = document.title
+  console.log('渲染时的 oldTitle', oldTitle)
+  useEffect(() => {
+    document.title = title
+  }, [title])
+  // 页面卸载时，如果 keepOnmount 为 false，则保留标题
+  useEffect(() => {
+    return () => {
+      if (!keepOnUnmount) {
+        console.log('卸载时的 oldTitle', oldTitle)
+        document.title = oldTitle
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+}
