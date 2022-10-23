@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const isFalsy = (value: unknown) => (value === 0 ? false : !value)
 export const isVoid = (value: unknown) => value === undefined || value === null || value === ''
@@ -47,8 +47,10 @@ export const useArray = <T>(initialArray: T[]) => {
 }
 
 export const useDocumentTitle = (title: string, keepOnUnmount = true) => {
-  const oldTitle = document.title
-  console.log('渲染时的 oldTitle', oldTitle)
+  // useRef 可以保存某一数据的初始值，且在全部周期函数中都不会变化
+  const oldTitle = useRef(document.title).current
+  // 页面加载时，oldTitle === 旧 title 'React App'
+  // 加载后，oldTitle === 新 title
   useEffect(() => {
     document.title = title
   }, [title])
@@ -56,10 +58,9 @@ export const useDocumentTitle = (title: string, keepOnUnmount = true) => {
   useEffect(() => {
     return () => {
       if (!keepOnUnmount) {
-        console.log('卸载时的 oldTitle', oldTitle)
+        // 如果不指定依赖，读到的就是旧 title
         document.title = oldTitle
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [keepOnUnmount, oldTitle])
 }
